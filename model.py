@@ -12,13 +12,14 @@ from sklearn.model_selection import train_test_split
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
+from scipy.misc import imresize
 
 image_file_path = './data/IMG/'
 driving_file_path = './data/driving_log.csv'
 images = os.listdir(image_file_path)
 
 def load_data():
-	train_imgs = [mpimg.imread(image_file_path + img) for img in images]
+	train_imgs = [imresize(mpimg.imread(image_file_path + img), (160, 80, 3)) for img in images]
 	train_imgs = np.array(train_imgs)
 	print("finish train_imgs")
 	train_labels = pd.read_csv(driving_file_path).iloc[:, 3]
@@ -36,7 +37,7 @@ def main():
 	output_shape = len(np.unique(y_train))
 
 	model = Sequential()
-	model.add(Convolution2D(32, 3, 3, border_mode='same', input_shape=(160,320,3,)))
+	model.add(Convolution2D(32, 3, 3, border_mode='same', input_shape=(160, 80, 3,)))
 	model.add(Activation('relu'))
 	model.add(Convolution2D(32, 3, 3))
 	model.add(Activation('relu'))
