@@ -13,8 +13,8 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
 
-image_file_path = '/Users/hiraku/Desktop/driving_data/IMG/'
-driving_file_path = '/Users/hiraku/Desktop/driving_data/driving_log.csv'
+image_file_path = './data/IMG/'
+driving_file_path = './data/driving_log.csv'
 images = os.listdir(image_file_path)
 
 def load_data():
@@ -63,7 +63,7 @@ def main():
 	#model = Model(input=inputs, output=prediction)
 	model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=1)
+	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=10)
 
 	with open('model.json', 'w') as f:
 		f.write(model.to_json())
