@@ -89,7 +89,7 @@ def main():
 	#model = Model(input=inputs, output=prediction)
 	model.compile(loss='mean_squared_error', optimizer='adam')
 
-	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=1)
+	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=5)
 
 	with open('model.json', 'w') as f:
 		f.write(model.to_json())
