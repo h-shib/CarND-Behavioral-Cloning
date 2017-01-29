@@ -20,7 +20,7 @@ driving_file_path = './data/driving_log.csv'
 images = os.listdir(image_file_path)
 
 def load_data():
-	train_imgs = [imresize(mpimg.imread(image_file_path + img), (66, 200)) for img in images]
+	train_imgs = [imresize(mpimg.imread(image_file_path + img)[60:130], (66, 200, 3)) for img in images]
 	train_imgs = np.array(train_imgs)
 	print("finish train_imgs")
 	train_labels = pd.read_csv(driving_file_path).iloc[:, 3]
@@ -89,7 +89,7 @@ def main():
 	#model = Model(input=inputs, output=prediction)
 	model.compile(loss='mean_squared_error', optimizer='adam')
 
-	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=5)
+	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=1)
 
 	with open('model.json', 'w') as f:
 		f.write(model.to_json())
