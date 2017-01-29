@@ -9,8 +9,9 @@ from keras.layers import Input, Flatten, Dense
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
-from keras.layers.core import Dense, Dropout, Activation, Flatten
+from keras.layers.core import Dense, Dropout, Activation, Flatten, Lambda
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.layers.advanced_activations import ELU
 from keras.layers.normalization import BatchNormalization
 from scipy.misc import imresize
 
@@ -19,7 +20,7 @@ driving_file_path = './data/driving_log.csv'
 images = os.listdir(image_file_path)
 
 def load_data():
-	train_imgs = [imresize(mpimg.imread(image_file_path + img), (160, 80, 3)) for img in images]
+	train_imgs = [imresize(mpimg.imread(image_file_path + img), (66, 200)) for img in images]
 	train_imgs = np.array(train_imgs)
 	print("finish train_imgs")
 	train_labels = pd.read_csv(driving_file_path).iloc[:, 3]
@@ -37,34 +38,58 @@ def main():
 	output_shape = len(np.unique(y_train))
 
 	model = Sequential()
-	model.add(Convolution2D(32, 3, 3, border_mode='same', input_shape=(160, 80, 3,)))
-	model.add(Activation('relu'))
-	model.add(Convolution2D(32, 3, 3))
-	model.add(Activation('relu'))
-	model.add(MaxPooling2D(pool_size=(2, 2)))
-	model.add(Dropout(0.25))
-
-	model.add(Convolution2D(64, 3, 3, border_mode='same'))
-	model.add(Activation('relu'))
-	model.add(Convolution2D(64, 3, 3))
-	model.add(Activation('relu'))
-	model.add(MaxPooling2D(pool_size=(2, 2)))
-	model.add(Dropout(0.25))
-
+	# Input Layer.
+	# Input: 66x200x3. Output: normalized input
+	model.add(Lambda(lambda x : x/127.5 - 1., input_shape = (66, 200, 3)))
+	# Layer 1: Convolutional Layer.
+	# Input: 66x200x3. Output: 66x200x24.
+	model.add(Convolution2D(24, 5, 5, subsample=(2, 2), border_mode='valid', init='he_normal'))
+	model.add(ELU())
+	# Layer 2: Convolutional Layer.
+	# Input: 66x200x24. Output: 66x200x36.
+	model.add(Convolution2D(36, 5, 5, subsample=(2, 2), border_mode='valid', init='he_normal'))
+	model.add(ELU())
+	# Layer 3: Convolutional Layer.
+	# Input: 66x200x36. Output: 66x200x48.
+	model.add(Convolution2D(48, 5, 5, subsample=(2, 2), border_mode='valid', init='he_normal'))
+	model.add(ELU())
+	# Layer 4: Convolutional Layer.
+	# Input: 66x200x48. Output: 66x200x64.
+	model.add(Convolution2D(64, 3, 3, subsample=(1, 1), border_mode='valid', init='he_normal'))
+	model.add(ELU())
+	# Layer 5: Convolutional Layer.
+	# Input: 66x200x64. Ouput: 66x200x64.
+	model.add(Convolution2D(64, 3, 3, subsample=(1, 1), border_mode='valid', init='he_normal'))
+	model.add(ELU())
 	model.add(Flatten())
-	model.add(Dense(512))
-	model.add(Activation('relu'))
-	model.add(Dropout(0.5))
-	model.add(Dense(1))
+	# Layer 6: Fully Connected Layer.
+	# Input: 844800. Output: 1164.
+	model.add(Dense(1164, init='he_normal'))
+	model.add(ELU())
+	# Layer 7: Fully Connected Layer.
+	# Input: 1164. Output: 100.
+	model.add(Dense(100, init='he_normal'))
+	model.add(ELU())
+	# Layer 8: Fully Connected Layer.
+	# Input: 100. Output: 100.
+	model.add(Dense(100, init='he_normal'))
+	model.add(ELU())
+	# Layer 9: Fully Connected Layer. (with dropout rate of 0.4)
+	# Input: 100. Output: 10.
+	model.add(Dropout(0.4))
+	model.add(Dense(10, init='he_normal'))
+	model.add(ELU())
+	# Output Layer.
+	model.add(Dense(1, init='he_normal'))
 
 	#inputs = Input(shape=input_shape)
 	#x = Flatten()(inputs)
 	#prediction = Dense(output_shape, activation='softmax')(x)
 
 	#model = Model(input=inputs, output=prediction)
-	model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+	model.compile(loss='mean_squared_error', optimizer='adam')
 
-	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=10)
+	model.fit(X_train, y_train, shuffle=True, validation_data=(X_test, y_test), nb_epoch=1)
 
 	with open('model.json', 'w') as f:
 		f.write(model.to_json())
