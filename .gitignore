@@ -1,4 +1,4 @@
-test_model.h5
+checkpoints/
 test_model.json
 test_model.py
 data/
