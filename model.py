@@ -80,8 +80,10 @@ def _generator(batch_size, X, y):
 
 def main():
 	X, y = load_data()
+	X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
 	net = model(input_shape=(100, 100, 3))
-	net.fit_generator(_generator(256, X, y), samples_per_epoch=20224, nb_epoch=8)
+	net.fit_generator(_generator(256, X_train, y_train), samples_per_epoch=20224, nb_epoch=8,
+						validation_data=_generator(256, X_val, y_val), nb_val_samples=2560)
 	with open('checkpoints/model.json', 'w') as f:
 		f.write(net.to_json())
 	net.save_weights('./checkpoints/model.h5')
