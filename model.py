@@ -32,6 +32,9 @@ def model(input_shape):
 	return model
 
 def load_data():
+	"""
+	Use left and right camera images to train the model
+	"""
 	X, y = [], []
 	offset = 0.4
 	with open(driving_file_path) as f:
@@ -43,6 +46,9 @@ def load_data():
 	return X, y
 
 def preprocess_image(image_path, steering, shape=(100, 100)):
+	"""
+	Cut unnecessary area of the image and apply augmentation functions and normalization 
+	"""
 	image = mpimg.imread(image_path)
 	origin_shape = image.shape
 	image = image[math.floor(float(origin_shape[0])/5):origin_shape[0]-25, 0:origin_shape[1]]
@@ -53,6 +59,9 @@ def preprocess_image(image_path, steering, shape=(100, 100)):
 	return image, steering
 
 def random_flip(image, steering):
+	"""
+	Flip the image randomly to augment image patterns
+	"""
 	is_flip = np.random.randint(2)
 	if is_flip:
 		image = cv2.flip(image, 1)
@@ -60,6 +69,9 @@ def random_flip(image, steering):
 	return image, steering
 
 def random_brightness(image):
+	"""
+	Add brightness to deal with night and day images
+	"""
 	image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 	random_brightness = np.random.uniform() + 0.25
 	image[:, :, 2] = image[:, :, 2] * random_brightness
